@@ -5,3 +5,4 @@
 * [Cryptorg GitHub repositories](https://github.com/cryptorg-io?tab=repositories)
 * [Cryptorg account API manage](https://cryptorg.net/ru/api-key/index)
 * [Cryptorg Telegram group for developers](https://t.me/cryptorg_api_testing)
+* [Список API ключей в ЛК](https://cryptorg.net/ru/api-key/index)
