@@ -3,12 +3,11 @@ from settings import app_settings as appset
 
 
 def main():
-    cryptorg = Api(appset.apiKey, appset.apiSecret)
 
-    """ First arg must be an array of parrams """
-    """ Second arg must be an array of attributes """
+    cryptorg = Api(appset.api_key, appset.api_secret)
 
-    print(cryptorg.botList())
+    bot_list = cryptorg.bot_list()
+    print(bot_list)
 
 
 if __name__ == '__main__':

@@ -4,265 +4,68 @@ import time
 import hashlib
 import base64
 import hmac
+from settings import app_settings as appset
 
 
-class Api():
-    """ This is API for Cryptorg.net """
+class Api:
+    """
+    Class for Cryptorg API for futures
+    """
 
-    apiKey = ''
-    apiSecret = ''
-    apiUrl = "https://api2.cryptorg.net/"
+    api_key = ''
+    api_secret = ''
+    api_url = appset.api_url
 
-    """ Cryptorg api constructor """
-
-    def __init__(self, apiKey, apiSecret):
-        self.apiKey = apiKey
-        self.apiSecret = apiSecret
-
-    """ GetCryptorg.net current status """
-
-    def status(self):
-        return self.sendRequest('GET', 'api/status')
+    def __init__(self, api_key, api_secret):
+        """
+        Cryptorg api constructor
+        :param api_key:
+        :param api_secret:
+        """
+        self.api_key = api_key
+        self.api_secret = api_secret
 
     """ Get list of user's bots """
 
-    def botList(self):
-        return self.sendRequest('GET', 'bot-futures/all')
-
-    """ Get bot details """
-
-    def botInfo(self, params):
-
-        try:
-            query = "botId=" + str(params['botId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'bot/info', query)
-
-    """ Advanced create bot """
-
-    def createBot(self, params, attributes):
-
-        try:
-            query = "pair=" + params['pair'] + "&exchange=" + params['exchange']
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('POST', 'bot/create', query, attributes)
-
-    """ Create bot with preset """
-
-    def createPreset(self, params, attributes):
-
-        try:
-            query = "pair=" + params['pair'] + "&exchange=" + params['exchange']
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('POST', 'bot/create-preset', query, attributes)
-
-    """ Update bot settings """
-
-    def updateBot(self, params, attributes):
-
-        try:
-            query = "pair=" + params['pair'] + "&botId=" + str(params['botId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('POST', 'bot/configure', query, attributes)
-
-    """ Delete bot """
-
-    def deleteBot(self, params):
-
-        try:
-            query = "botId=" + str(params['botId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'bot/delete', query)
-
-    """ Activate bot """
-
-    def activateBot(self, params):
-
-        try:
-            query = "botId=" + str(params['botId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'bot/activate', query)
-
-    """ Deactivate bot """
-
-    def deactivateBot(self, params):
-
-        try:
-            query = "botId=" + str(params['botId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'bot/deactivate', query)
-
-    """ Start bot force"""
-
-    def startBotForce(self, params):
-
-        try:
-            query = "botId=" + str(params['botId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'bot/start-force', query)
-
-    """ Get bot logs """
-
-    def getBotLogs(self, params):
-
-        try:
-            query = "botId=" + str(params['botId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'bot/logs', query)
-
-    """ Freeze deal """
-
-    def freezeDeal(self, params):
-
-        try:
-            query = "dealId=" + str(params['dealId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'deal/freeze', query)
-
-    """ Freeze deal """
-
-    def unFreezeDeal(self, params):
-
-        try:
-            query = "dealId=" + str(params['dealId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'deal/unfreeze', query)
-
-    """ Update TakeProfit """
-
-    def updateTakeProfit(self, params):
-
-        try:
-            query = "dealId=" + str(params['dealId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'deal/update-take-profit', query)
-
-    """ Cancel deal """
-
-    def cancelDeal(self, params):
-
-        try:
-            query = "dealId=" + str(params['dealId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'deal/cancel', query)
-
-    """ Get deal info """
-
-    def dealInfo(self, params):
-
-        try:
-            query = "dealId=" + str(params['dealId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'deal/info', query)
-
-    """ Get analytics """
-
-    def getAnalytics(self, params=''):
-
-        try:
-            query = "dealId=" + str(params['dealId'])
-            pass
-
-        except Exception as e:
-            return {'status': 'ok', 'result': 'false', 'message': e}
-
-        else:
-            return self.sendRequest('GET', 'analytics/get', query)
-
-    """ Send request to api.cryptorg.net """
-
-    def sendRequest(self, method, url, query='', params=''):
-
-        nonce = str(int(time.time()))
-
-        authStr = url + '/' + nonce + '/' + query
-        strForSign = base64.b64encode(authStr.encode('utf-8'))
-
-        hash = hmac.new(self.apiSecret.encode('utf-8'), strForSign, hashlib.sha256).hexdigest()
-
-        headers = {
-
-            "CTG-API-SIGNATURE": str(hash),
-            "CTG-API-KEY": str(self.apiKey),
-            "CTG-API-NONCE": nonce
+    def bot_list(self):
+        """
+        Get list of all user's bots.
+        :return:
+        """
+        return self.send_request('GET', 'bot-futures/all', 'exchange=CRYPTORG_FUTURES')
+
+    def send_request(self, method, url, query='', params=''):
+        """
+        Send request to api.cryptorg.net. Response structure is:
+        {
+            "isSuccess": true,
+            "errorMessage": "",
+            "data": "Command was sent" (list of dictionaries or str)
         }
+        :param method: HTTP method - 'GET' or 'POST'.
+        :param url: API method url (example, for Get list of all user's bots: 'bot-futures/all').
+        :param query: API method query parameters (example, for Get list of all user's bots: 'exchange=CRYPTORG_FUTURES').
+        :param params: API method body parameters.
+        :return: dict from response.
+        """
+        nonce = int(time.time())
+        str_sign = f'/{url}/{nonce}/{query}'
+        ctg_api_signature = hmac.new(self.api_secret.encode('utf-8'), base64.b64encode(str_sign.encode('utf-8')),
+                                     hashlib.sha256).hexdigest()
+        headers = {
+            "CTG-API-SIGNATURE": f'{ctg_api_signature}',
+            "CTG-API-KEY": f'{self.api_key}',
+            "CTG-API-NONCE": f'{nonce}'
+        }
+        if query == '':
+            sign_url = self.api_url + url
+        else:
+            sign_url = self.api_url + url + '?' + query
 
-        signUrl = self.apiUrl + url + '?' + query
-
-        if (method == 'GET'):
-            response = requests.get(url=signUrl, headers=headers).text
-
-        if (method == 'POST'):
-            response = requests.post(url=signUrl, headers=headers, json=params).text
-
-        return json.dumps(json.loads(response), indent=4, sort_keys=True)
+        # send request
+        if method == 'GET':
+            response = requests.get(url=sign_url, headers=headers)
+        elif method == 'POST':
+            response = requests.post(url=sign_url, headers=headers, json=params)
+        # print(json.dumps(json.loads(response.text), indent=4, sort_keys=True))
+        return json.loads(response.text)  # return dict
