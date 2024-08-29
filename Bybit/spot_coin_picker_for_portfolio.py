@@ -44,33 +44,34 @@ def batch_insert_klines_to_db(klines):
         # Подготовка данных для batch-вставки
         data_to_insert = [
             (
-                int(kline[0]),    # startTime
+                int(kline[0]),  # startTime
                 float(kline[1]),  # open
                 float(kline[2]),  # high
                 float(kline[3]),  # low
                 float(kline[4]),  # close
                 float(kline[5]),  # volume
-                float(kline[6])   # turnover
+                float(kline[6])  # turnover
             ) for kline in klines
         ]
-        print(data_to_insert[0])
+
         # Выполняем batch-вставку с обработкой конфликта
         cursor.executemany('''
-        INSERT INTO kline_history (startTime, open, high, low, close, volume, turnover)
+        INSERT INTO kline_history ([startTime], [open], [high], [low], [close], [volume], [turnover])
         VALUES (?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT(startTime) DO NOTHING
-            open=excluded.open,
-            high=excluded.high,
-            low=excluded.low,
-            close=excluded.close,
-            volume=excluded.volume,
-            turnover=excluded.turnover
+        ON CONFLICT([startTime]) DO UPDATE SET
+            [open]=excluded.[open],
+            [high]=excluded.[high],
+            [low]=excluded.[low],
+            [close]=excluded.[close],
+            [volume]=excluded.[volume],
+            [turnover]=excluded.[turnover]
         ''', data_to_insert)
         conn.commit()
     except sqlite3.Error as e:
         print(f"Ошибка при вставке данных: {e}")
     finally:
         conn.close()
+
 
 def insert_kline_to_db(kline):
     """
@@ -125,10 +126,10 @@ def get_kline_history(session, symbol):
             print("...")
             print(f"{unixtime_to_datetime(int(klines[-1][0]))}\n{klines[-1]}")
             # Вставляем свечи в базу данных одной batch-вставкой
-            # batch_insert_klines_to_db(klines)
+            batch_insert_klines_to_db(klines)
             # Вставляем каждую свечу в базу данных
-            for kline in klines:
-                insert_kline_to_db(kline)
+            # for kline in klines:
+            #     insert_kline_to_db(kline)
         else:
             # Если ничего не вернулось, выходим из функции
             print("klines is empty")
