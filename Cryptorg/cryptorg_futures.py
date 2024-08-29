@@ -25,7 +25,12 @@ class Api:
         self.api_key = api_key
         self.api_secret = api_secret
 
-    """ Get list of user's bots """
+    def access(self):
+        """
+        Futures Access List (get accessId).
+        :return:
+        """
+        return self.send_request('GET', 'bot-futures/access-list')
 
     def bot_list(self):
         """

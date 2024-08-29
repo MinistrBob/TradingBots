@@ -3,39 +3,6 @@
    "errorMessage":"",
    "data":[
       {
-         "id":438664,
-         "title":"TON",
-         "leverage":3,
-         "userId":60222,
-         "strategy":"LONG",
-         "status":"DISABLED",
-         "settings":{
-            "margin_mode":"ISO",
-            "type_take_profit":"LIMIT",
-            "type_first_order":"MARKET",
-            "percent_take_profit":"3",
-            "percent_safety_order":"2",
-            "volume_first_order":"50",
-            "volume_safety_order":"50",
-            "count_order_working":"",
-            "count_order_max":"6",
-            "martingale":"1",
-            "martingale_scale":"1.1",
-            "dynamic_step":"0",
-            "dynamic_step_scale":"1.05",
-            "cycle_limit":"0",
-            "cycle_limit_scale":"1",
-            "tb_group_indicator":"NOTHING",
-            "tb_indicator":"",
-            "tb_interval":"1MIN",
-            "price_level":"NOTHING",
-            "price_level_up":0,
-            "price_level_down":0
-         },
-         "pairTitle":"USDT-TON",
-         "exchange":"CRYPTORG_FUTURES"
-      },
-      {
          "id":433152,
          "title":"YGG",
          "leverage":3,
@@ -367,7 +334,7 @@
       },
       {
          "id":417782,
-         "title":"Alex  - OP LONG TV 5m 14%",
+         "title":"OP LONG TV 5m 14% (Alex)",
          "leverage":3,
          "userId":60222,
          "strategy":"LONG",
@@ -400,7 +367,7 @@
       },
       {
          "id":414724,
-         "title":"Alex - DYDX LONG TV 5m (plot 6) 8%",
+         "title":"DYDX LONG TV 5m (plot 6) 8% (Alex)",
          "leverage":2,
          "userId":60222,
          "strategy":"LONG",
@@ -433,7 +400,7 @@
       },
       {
          "id":414606,
-         "title":"Alex  - ADA LONG TV 5m (plot 6) 7%",
+         "title":"ADA LONG TV 5m (plot 6) 7% (Alex)",
          "leverage":3,
          "userId":60222,
          "strategy":"LONG",
@@ -466,7 +433,7 @@
       },
       {
          "id":414605,
-         "title":"Alex  - XRP LONG TV 5m (plot 6) 7% ",
+         "title":"XRP LONG TV 5m (plot 6) 7% (Alex)",
          "leverage":3,
          "userId":60222,
          "strategy":"LONG",
@@ -499,7 +466,7 @@
       },
       {
          "id":414600,
-         "title":"Alex  - MATIC LONG TV 5m (plot 6) 7%",
+         "title":"MATIC LONG TV 5m (plot 6) 7% (Alex)",
          "leverage":3,
          "userId":60222,
          "strategy":"LONG",
@@ -532,7 +499,7 @@
       },
       {
          "id":414598,
-         "title":"Alex - AVAX LONG TV 5m (plot 6) 8%",
+         "title":"AVAX LONG TV 5m (plot 6) 8% (Alex)",
          "leverage":2,
          "userId":60222,
          "strategy":"LONG",
@@ -565,7 +532,7 @@
       },
       {
          "id":411071,
-         "title":"cedr - BAKE LONG TV 5m 12%",
+         "title":"BAKE LONG TV 5m 12% (cedr)",
          "leverage":2,
          "userId":60222,
          "strategy":"LONG",
@@ -598,7 +565,7 @@
       },
       {
          "id":411069,
-         "title":"cedr - INJ LONG TV 5m 12%",
+         "title":"INJ LONG TV 5m 12% (cedr)",
          "leverage":2,
          "userId":60222,
          "strategy":"LONG",
@@ -631,7 +598,7 @@
       },
       {
          "id":411064,
-         "title":"cedr - FET LONG TV 5m 12%",
+         "title":"FET LONG TV 5m 12% (cedr)",
          "leverage":3,
          "userId":60222,
          "strategy":"LONG",
@@ -664,7 +631,7 @@
       },
       {
          "id":411062,
-         "title":"cedr - LDO LONG TV 5M 12%",
+         "title":"LDO LONG TV 5M 12% (cedr)",
          "leverage":3,
          "userId":60222,
          "strategy":"LONG",
