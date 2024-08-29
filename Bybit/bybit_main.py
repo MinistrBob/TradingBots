@@ -1,13 +1,7 @@
 from pybit.unified_trading import HTTP
 import json
 import time
-from datetime import datetime
-
-
-def format_timestamp(ts):
-    return datetime.utcfromtimestamp(ts / 1000).strftime('%d.%m.%Y %H:%M:%S:%f')[:-3] \
-        if ts is not None \
-        else 'Нет данных'
+from utils import format_timestamp, datetime_to_unixtime
 
 
 def main():
@@ -67,19 +61,16 @@ def get_max_min_price(session, symbol):
     min_price_time = None
 
     # Определяем текущее время в миллисекундах
-    end_time = int(time.time() * 1000)  # Конечное время — текущее время
-    interval_ms = 24 * 60 * 60 * 1000  # Интервал 1 день в миллисекундах
+    end_time = 0
     start_time = 0  # Начальное время (0 для начала всей истории)
-
-
-
+    limit = 1000  # Количество свечей для запроса
     while True:
         # Запрос исторических данных свечей с указанием временного диапазона
         response = session.get_kline(
             category="spot",
             symbol=symbol,
             interval="D",
-            limit=1000,
+            limit=limit,
             start=start_time,
             end=end_time
         )
@@ -89,6 +80,7 @@ def get_max_min_price(session, symbol):
             break
 
         print(klines[0])  # Печатаем первую свечу для отладки
+        print(klines[limit-1])
 
         # Обновляем максимум и минимум
         for kline in klines:
