@@ -1,7 +1,8 @@
 from pybit.unified_trading import HTTP
 import json
-import time
-from utils import unixtime_to_datetime, datetime_to_unixtime, get_current_unixtime
+import sqlite3
+from sqlite_db import create_database
+from utils import unixtime_to_datetime, get_current_unixtime
 
 
 def main():
@@ -10,13 +11,10 @@ def main():
         api_key=r"RFnhyD7SwLfxnrUHwf",
         api_secret=r"JI5joaLGQ9KZsrjKDTAHfiP50gsq8DTmVE6l",
     )
-
     # print(session.get_orderbook(category="linear", symbol="BTCUSDT"))
-
+    create_database()
     # symbols_list = get_symbols_list(session)
-
-    # get_max_min_price(session, 'BTCUSDT')
-    test1(session, 'BTCUSDT')
+    get_kline_history(session, 'BTCUSDT')
 
 def get_symbols_list(session):
     symbols = session.get_instruments_info(category='spot')
@@ -34,6 +32,71 @@ def get_symbols_list(session):
     print(len(usdt_symbols_sorted), usdt_symbols_sorted)
 
     return usdt_symbols_sorted
+
+def batch_insert_klines_to_db(klines):
+    """
+    Вставляет несколько свечей в базу данных в одной операции.
+    Если запись с таким startTime уже существует, обновляет данные.
+    """
+    conn = sqlite3.connect('spot_coin_picker_for_portfolio.db')
+    cursor = conn.cursor()
+    try:
+        # Подготовка данных для batch-вставки
+        data_to_insert = [
+            (
+                int(kline[0]),    # startTime
+                float(kline[1]),  # open
+                float(kline[2]),  # high
+                float(kline[3]),  # low
+                float(kline[4]),  # close
+                float(kline[5]),  # volume
+                float(kline[6])   # turnover
+            ) for kline in klines
+        ]
+        print(data_to_insert[0])
+        # Выполняем batch-вставку с обработкой конфликта
+        cursor.executemany('''
+        INSERT INTO kline_history (startTime, open, high, low, close, volume, turnover)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(startTime) DO NOTHING
+            open=excluded.open,
+            high=excluded.high,
+            low=excluded.low,
+            close=excluded.close,
+            volume=excluded.volume,
+            turnover=excluded.turnover
+        ''', data_to_insert)
+        conn.commit()
+    except sqlite3.Error as e:
+        print(f"Ошибка при вставке данных: {e}")
+    finally:
+        conn.close()
+
+def insert_kline_to_db(kline):
+    """
+    Вставляет одну свечу в базу данных.
+    """
+    conn = sqlite3.connect('spot_coin_picker_for_portfolio.db')
+    cursor = conn.cursor()
+    try:
+        cursor.execute('''
+        INSERT INTO kline_history (startTime, open, high, low, close, volume, turnover)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            int(kline[0]),    # startTime
+            float(kline[1]),  # open
+            float(kline[2]),  # high
+            float(kline[3]),  # low
+            float(kline[4]),  # close
+            float(kline[5]),  # volume
+            float(kline[6])   # turnover
+        ))
+        conn.commit()
+    except sqlite3.IntegrityError:
+        # Если запись с таким startTime уже существует, ничего не делаем
+        print(f"Запись с startTime {kline[0]} уже существует в базе данных.")
+    finally:
+        conn.close()
 
 def get_kline_history(session, symbol):
     """
@@ -61,6 +124,11 @@ def get_kline_history(session, symbol):
             print(f"{unixtime_to_datetime(int(klines[1][0]))}\n{klines[1]}")
             print("...")
             print(f"{unixtime_to_datetime(int(klines[-1][0]))}\n{klines[-1]}")
+            # Вставляем свечи в базу данных одной batch-вставкой
+            # batch_insert_klines_to_db(klines)
+            # Вставляем каждую свечу в базу данных
+            for kline in klines:
+                insert_kline_to_db(kline)
         else:
             # Если ничего не вернулось, выходим из функции
             print("klines is empty")
