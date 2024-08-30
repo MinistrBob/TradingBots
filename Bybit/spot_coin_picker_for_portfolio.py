@@ -204,7 +204,7 @@ def symbol_data_processing(conn_db, symbol):
         # Рассчитываем firstLine, secondLine и middleLine
         first_line = min_price + (max_price - min_price) / 3
         second_line = min_price + 2 * (max_price - min_price) / 3
-        middle_line = (max_price + min_price) / 2
+        middle_line = min_price + (max_price - min_price) / 2
 
         # Получаем текущее время в unixtime
         date_last_check = int(datetime.now().timestamp())
