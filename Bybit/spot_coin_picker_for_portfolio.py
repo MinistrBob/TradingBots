@@ -16,6 +16,7 @@ def main():
     # symbols_list = get_symbols_list(session)
     get_kline_history(session, 'BTCUSDT')
 
+
 def get_symbols_list(session):
     symbols = session.get_instruments_info(category='spot')
     print(json.dumps(symbols, indent=4))
@@ -32,6 +33,7 @@ def get_symbols_list(session):
     print(len(usdt_symbols_sorted), usdt_symbols_sorted)
 
     return usdt_symbols_sorted
+
 
 def batch_insert_klines_to_db(klines):
     """
@@ -84,13 +86,13 @@ def insert_kline_to_db(kline):
         INSERT INTO kline_history (startTime, open, high, low, close, volume, turnover)
         VALUES (?, ?, ?, ?, ?, ?, ?)
         ''', (
-            int(kline[0]),    # startTime
+            int(kline[0]),  # startTime
             float(kline[1]),  # open
             float(kline[2]),  # high
             float(kline[3]),  # low
             float(kline[4]),  # close
             float(kline[5]),  # volume
-            float(kline[6])   # turnover
+            float(kline[6])  # turnover
         ))
         conn.commit()
     except sqlite3.IntegrityError:
@@ -98,6 +100,7 @@ def insert_kline_to_db(kline):
         print(f"Запись с startTime {kline[0]} уже существует в базе данных.")
     finally:
         conn.close()
+
 
 def get_kline_history(session, symbol):
     """
