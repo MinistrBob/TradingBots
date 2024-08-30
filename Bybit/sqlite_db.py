@@ -14,19 +14,22 @@ def create_database():
     """
     symbol TEXT PRIMARY KEY - уникальный идентификатор символа (например, BTCUSDT)
     dateLastCheck INTEGER - дата последнего обновления цены (unixtime)
-    currentPrice FLOAT - текущая цена
+    lastPrice FLOAT - текущая цена
+    volumeUsdt INTEGER - оборот в USDT за 24часа
     maxPrice FLOAT - максимальная цена за всё время торгов этой пары
     minPrice FLOAT - минимальная цена за всё время торгов этой пары
+    -- Эти значения вычисляются
     firstLine FLOAT - линия цены отделяющая первую треть от второй трети
     secondLine FLOAT - линия цены отделяющая вторую треть от третьей трети 
     middleLine FLOAT - серединная линия цены 
-    range INTEGER - диапазон цены [1-4]
+    range INTEGER - диапазон цены [1-4] 
     """
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS symbols (
         symbol TEXT PRIMARY KEY,
         dateLastCheck INTEGER,
-        currentPrice FLOAT,
+        lastPrice FLOAT,
+        volumeUsdt INTEGER
         maxPrice FLOAT,
         minPrice FLOAT,
         firstLine FLOAT,
@@ -54,14 +57,13 @@ def create_database():
     conn.commit()
     return conn
 
-def update_date_last_check(symbol, date_last_check):
+def update_date_last_check(conn_db,symbol, date_last_check):
     """
     Обновляет дату последнего обновления цены в базе данных.
     """
     print(f"Обновляем дату последнего обновления цены "
           f"{date_last_check} - {unixtime_to_datetime(date_last_check)} для {symbol}")
-    conn = sqlite3.connect('spot_coin_picker_for_portfolio.db')
-    cursor = conn.cursor()
+    cursor = conn_db.cursor()
     cursor.execute("UPDATE symbols SET dateLastCheck = ? WHERE symbol = ?", (date_last_check, symbol))
-    conn.commit()
-    conn.close()
+    conn_db.commit()
+    cursor.close()

@@ -4,6 +4,7 @@ import sqlite3
 import traceback
 from sqlite_db import create_database, update_date_last_check
 from utils import unixtime_to_datetime, get_current_unixtime
+from datetime import datetime, timezone
 
 
 def main():
@@ -14,10 +15,15 @@ def main():
             api_secret=r"JI5joaLGQ9KZsrjKDTAHfiP50gsq8DTmVE6l",
         )
         conn_db = create_database()
+
+        # get_tickers(bybit_api, conn_db, 'BTCUSDT')
+        # exit()
+
         # symbols_list = get_symbols_list(bybit_api)
         # TODO: Здесь нужно реализовать цикл по всем монетам.
         get_kline_history(bybit_api, conn_db, 'BTCUSDT')
-        symbol_data_processing(bybit_api, 'BTCUSDT')
+        get_tickers(bybit_api, conn_db, 'BTCUSDT')
+        symbol_data_processing(conn_db, 'BTCUSDT')
     except Exception:
         print(traceback.format_exc())
     finally:
@@ -153,8 +159,29 @@ def get_kline_history(bybit_api, conn_db, symbol):
         # Устанавливаем новое начальное время для следующей итерации
         end_time = last_time - interval_ms
         print("===========================")
-    update_date_last_check(symbol, date_last_check)
+    update_date_last_check(conn_db, symbol, date_last_check)
 
+def get_tickers(bybit_api, conn_db, symbol):
+    tickers = bybit_api.get_tickers(category="spot", symbol=symbol)
+    print(tickers)
+    last_price = tickers['result']['list'][0]['lastPrice']
+    volume_usdt = int(float(tickers['result']['list'][0]['turnover24h']))
+    print(last_price, volume_usdt)
+    cursor = None
+    if last_price is not None and volume_usdt is not None:
+        cursor = conn_db.cursor()
+        # Обновляем или вставляем данные в таблицу symbols
+        cursor.execute('''
+            UPDATE symbols
+            SET lastPrice = ?, volumeUsdt = ?
+            WHERE symbol = ?
+        ''', (last_price, volume_usdt, symbol))
+        print(f"Данные для {symbol} успешно обновлены last_price={last_price}, volume_usdt={volume_usdt}")
+    else:
+        print(f"Нет данных last_price, volume_usdt для символа {symbol}")
+    conn_db.commit()
+    if cursor is not None:
+        cursor.close()
 
 def symbol_data_processing(conn_db, symbol):
     """
@@ -194,14 +221,19 @@ def symbol_data_processing(conn_db, symbol):
             middleLine = excluded.middleLine,
             dateLastCheck = excluded.dateLastCheck
         ''', (symbol, max_price, min_price, first_line, second_line, middle_line, date_last_check))
-
-        print(f"Данные для символа {symbol} успешно обновлены в таблице symbols.")
-
+        cursor.execute('''
+            UPDATE symbols
+            SET lastPrice = ?, volumeUsdt = ?
+            WHERE symbol = ?
+        ''', (max_price, min_price, first_line, second_line, middle_line, date_last_check, symbol))
+        print(f"Данные для {symbol} успешно обновлены max_price={max_price}, min_price={min_price}, "
+              f"first_line={first_line}, second_line={second_line}, middle_line={middle_line}, "
+              f"date_last_check={date_last_check}")
     else:
-        print(f"Нет данных для символа {symbol} в таблице kline_history.")
-
-    conn.commit()
-    conn.close()
+        print(f"Нет данных max_price, min_price, first_line, second_line, "
+              f"middle_line, date_last_check для символа {symbol}")
+    conn_db.commit()
+    cursor.close()
 
 
 if __name__ == '__main__':
