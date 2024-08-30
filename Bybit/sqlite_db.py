@@ -1,4 +1,5 @@
 import sqlite3
+from utils import unixtime_to_datetime
 
 
 def create_database():
@@ -8,13 +9,30 @@ def create_database():
     conn = sqlite3.connect('spot_coin_picker_for_portfolio.db')
     cursor = conn.cursor()
 
+
     # Создание таблицы symbols
+    """
+    symbol TEXT PRIMARY KEY - уникальный идентификатор символа (например, BTCUSDT)
+    dateLastCheck INTEGER - дата последнего обновления цены (unixtime)
+    currentPrice FLOAT - текущая цена
+    maxPrice FLOAT - максимальная цена за всё время торгов этой пары
+    minPrice FLOAT - минимальная цена за всё время торгов этой пары
+    firstLine FLOAT - линия цены отделяющая первую треть от второй трети
+    secondLine FLOAT - линия цены отделяющая вторую треть от третьей трети 
+    middleLine FLOAT - серединная линия цены 
+    range INTEGER - диапазон цены [1-4]
+    """
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS symbols (
         symbol TEXT PRIMARY KEY,
+        dateLastCheck INTEGER,
+        currentPrice FLOAT,
         maxPrice FLOAT,
         minPrice FLOAT,
-        dateLastCheck INTEGER
+        firstLine FLOAT,
+        secondLine FLOAT,
+        middleLine FLOAT,
+        range INTEGER
     )
     ''')
 
@@ -34,5 +52,16 @@ def create_database():
     ''')
 
     conn.commit()
-    conn.close()
+    return conn
 
+def update_date_last_check(symbol, date_last_check):
+    """
+    Обновляет дату последнего обновления цены в базе данных.
+    """
+    print(f"Обновляем дату последнего обновления цены "
+          f"{date_last_check} - {unixtime_to_datetime(date_last_check)} для {symbol}")
+    conn = sqlite3.connect('spot_coin_picker_for_portfolio.db')
+    cursor = conn.cursor()
+    cursor.execute("UPDATE symbols SET dateLastCheck = ? WHERE symbol = ?", (date_last_check, symbol))
+    conn.commit()
+    conn.close()

@@ -1,24 +1,35 @@
 from pybit.unified_trading import HTTP
 import json
 import sqlite3
-from sqlite_db import create_database
+import traceback
+from sqlite_db import create_database, update_date_last_check
 from utils import unixtime_to_datetime, get_current_unixtime
 
 
 def main():
-    session = HTTP(
-        testnet=False,
-        api_key=r"RFnhyD7SwLfxnrUHwf",
-        api_secret=r"JI5joaLGQ9KZsrjKDTAHfiP50gsq8DTmVE6l",
-    )
-    # print(session.get_orderbook(category="linear", symbol="BTCUSDT"))
-    create_database()
-    # symbols_list = get_symbols_list(session)
-    get_kline_history(session, 'BTCUSDT')
+    try:
+        bybit_api = HTTP(
+            testnet=False,
+            api_key=r"RFnhyD7SwLfxnrUHwf",
+            api_secret=r"JI5joaLGQ9KZsrjKDTAHfiP50gsq8DTmVE6l",
+        )
+        conn_db = create_database()
+        # symbols_list = get_symbols_list(bybit_api)
+        # TODO: Здесь нужно реализовать цикл по всем монетам.
+        get_kline_history(bybit_api, conn_db, 'BTCUSDT')
+        symbol_data_processing(bybit_api, 'BTCUSDT')
+    except Exception:
+        print(traceback.format_exc())
+    finally:
+        # Гарантированное закрытие соединения
+        if 'conn_db' in locals() and conn_db is not None:
+            try:
+                conn_db.close()
+            except Exception as e:
+                print("Ошибка при закрытии соединения:", e)
 
-
-def get_symbols_list(session):
-    symbols = session.get_instruments_info(category='spot')
+def get_symbols_list(bybit_api):
+    symbols = bybit_api.get_instruments_info(category='spot')
     print(json.dumps(symbols, indent=4))
     # file_path = r'c:\MyGit\TradingBots\Bybit\spot_symbols.json'
     # with open(file_path, 'r', encoding='utf-8') as f:
@@ -35,13 +46,12 @@ def get_symbols_list(session):
     return usdt_symbols_sorted
 
 
-def batch_insert_klines_to_db(klines):
+def batch_insert_klines_to_db(conn_db, klines):
     """
     Вставляет несколько свечей в базу данных в одной операции.
     Если запись с таким startTime уже существует, обновляет данные.
     """
-    conn = sqlite3.connect('spot_coin_picker_for_portfolio.db')
-    cursor = conn.cursor()
+    cursor = conn_db.cursor()
     try:
         # Подготовка данных для batch-вставки
         data_to_insert = [
@@ -68,19 +78,17 @@ def batch_insert_klines_to_db(klines):
             [volume]=excluded.[volume],
             [turnover]=excluded.[turnover]
         ''', data_to_insert)
-        conn.commit()
+        conn_db.commit()
     except sqlite3.Error as e:
-        print(f"Ошибка при вставке данных: {e}")
-    finally:
-        conn.close()
+        raise Exception(f"Error in batch_insert_klines_to_db: {e}") from e
 
 
-def insert_kline_to_db(kline):
+
+def insert_kline_to_db(conn_db, kline):
     """
     Вставляет одну свечу в базу данных.
     """
-    conn = sqlite3.connect('spot_coin_picker_for_portfolio.db')
-    cursor = conn.cursor()
+    cursor = conn_db.cursor()
     try:
         cursor.execute('''
         INSERT INTO kline_history (startTime, open, high, low, close, volume, turnover)
@@ -94,15 +102,13 @@ def insert_kline_to_db(kline):
             float(kline[5]),  # volume
             float(kline[6])  # turnover
         ))
-        conn.commit()
+        conn_db.commit()
     except sqlite3.IntegrityError:
         # Если запись с таким startTime уже существует, ничего не делаем
         print(f"Запись с startTime {kline[0]} уже существует в базе данных.")
-    finally:
-        conn.close()
 
 
-def get_kline_history(session, symbol):
+def get_kline_history(bybit_api, conn_db, symbol):
     """
     Получение истории свечей для торговой пары для 1D.
     Выборка происходит в обратном порядке от end к start (от сегодня в прошлое).
@@ -111,9 +117,10 @@ def get_kline_history(session, symbol):
     start_time = 0
     limit = 1000
     interval_ms = 24 * 60 * 60 * 1000  # Интервал 1 день в миллисекундах
+    date_last_check = 0
     while True:
         # Запрашиваем следующие 1000 свечей
-        response = session.get_kline(
+        response = bybit_api.get_kline(
             category="spot",
             symbol=symbol,
             interval="D",
@@ -124,12 +131,14 @@ def get_kline_history(session, symbol):
         klines = response['result']['list']
         # Печатаем первую, вторую и последнюю свечу для контроля
         if klines:
+            if date_last_check == 0:
+                date_last_check = int(klines[0][0])
             print(f"{unixtime_to_datetime(int(klines[0][0]))}\n{klines[0]}")
-            print(f"{unixtime_to_datetime(int(klines[1][0]))}\n{klines[1]}")
+            # print(f"{unixtime_to_datetime(int(klines[1][0]))}\n{klines[1]}")
             print("...")
             print(f"{unixtime_to_datetime(int(klines[-1][0]))}\n{klines[-1]}")
             # Вставляем свечи в базу данных одной batch-вставкой
-            batch_insert_klines_to_db(klines)
+            batch_insert_klines_to_db(conn_db, klines)
             # Вставляем каждую свечу в базу данных
             # for kline in klines:
             #     insert_kline_to_db(kline)
@@ -144,6 +153,55 @@ def get_kline_history(session, symbol):
         # Устанавливаем новое начальное время для следующей итерации
         end_time = last_time - interval_ms
         print("===========================")
+    update_date_last_check(symbol, date_last_check)
+
+
+def symbol_data_processing(conn_db, symbol):
+    """
+    Определяем в какой диапазон попала текущая цена. Первая треть вторая треть или третья треть.
+    """
+    cursor = conn_db.cursor()
+
+    # Получаем максимальную и минимальную цены для символа из таблицы kline_history
+    cursor.execute('''
+    SELECT MAX(high), MIN(low) 
+    FROM kline_history 
+    WHERE symbol = ?
+    ''', (symbol,))
+    result = cursor.fetchone()
+
+    if result and result[0] is not None and result[1] is not None:
+        max_price = result[0]
+        min_price = result[1]
+
+        # Рассчитываем firstLine, secondLine и middleLine
+        first_line = min_price + (max_price - min_price) / 3
+        second_line = min_price + 2 * (max_price - min_price) / 3
+        middle_line = (max_price + min_price) / 2
+
+        # Получаем текущее время в unixtime
+        date_last_check = int(datetime.now().timestamp())
+
+        # Обновляем или вставляем данные в таблицу symbols
+        cursor.execute('''
+        INSERT INTO symbols (symbol, maxPrice, minPrice, firstLine, secondLine, middleLine, dateLastCheck)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(symbol) DO UPDATE SET 
+            maxPrice = excluded.maxPrice,
+            minPrice = excluded.minPrice,
+            firstLine = excluded.firstLine,
+            secondLine = excluded.secondLine,
+            middleLine = excluded.middleLine,
+            dateLastCheck = excluded.dateLastCheck
+        ''', (symbol, max_price, min_price, first_line, second_line, middle_line, date_last_check))
+
+        print(f"Данные для символа {symbol} успешно обновлены в таблице symbols.")
+
+    else:
+        print(f"Нет данных для символа {symbol} в таблице kline_history.")
+
+    conn.commit()
+    conn.close()
 
 
 if __name__ == '__main__':
