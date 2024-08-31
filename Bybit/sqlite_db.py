@@ -23,6 +23,7 @@ def create_database():
     middleLine FLOAT - серединная линия цены 
     level INTEGER - диапазон цены [1-4]
     monthsDiff INTEGER - сколько месяцев торгуется монета
+    priceDistanceToMaxPct INTEGER - расстояние между текущей ценой и максимальной ценой в процентах
     """
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS symbols (
@@ -36,7 +37,8 @@ def create_database():
         secondLine FLOAT,
         middleLine FLOAT,
         level INTEGER,
-        monthsDiff INTEGER
+        monthsDiff INTEGER,
+        priceDistanceToMaxPct INTEGER
     )
     ''')
 

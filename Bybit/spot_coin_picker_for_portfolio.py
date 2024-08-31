@@ -1,6 +1,3 @@
-# TODO: Сколько процентов от текущей цены до максимума.
-# TODO: Сколько времени существует монета.
-
 from pybit.unified_trading import HTTP
 import json
 import sqlite3
@@ -237,17 +234,21 @@ def symbol_data_processing(symbol):
         months_diff = int(time_difference_seconds / appset.average_seconds_per_month)
         print(f"Примерная разница в месяцах: {months_diff}")
 
+        # Сколько процентов от текущей цены до максимума.
+        price_distance_to_max_pct = int(((max_price - appset.last_price) / max_price) * 100)
+
         # Обновляем данные в таблице symbols
         cursor.execute('''
             UPDATE symbols
             SET maxPrice = ?, minPrice = ?, firstLine = ?, secondLine = ?, middleLine = ?, 
-            dateLastCheck = ?, level = ?, monthsDiff = ? 
+            dateLastCheck = ?, level = ?, monthsDiff = ?, priceDistanceToMaxPct = ? 
             WHERE symbol = ?
         ''', (max_price, min_price, first_line, second_line, middle_line, date_last_check, level, months_diff,
-              symbol))
+              price_distance_to_max_pct, symbol))
         print(f"Данные для {symbol} успешно обновлены max_price={max_price}, min_price={min_price}, "
               f"first_line={first_line}, second_line={second_line}, middle_line={middle_line}, "
-              f"date_last_check={date_last_check}, level={level}, months_diff={months_diff}")
+              f"date_last_check={date_last_check}, level={level}, months_diff={months_diff}, "
+              f"price_distance_to_max_pct={price_distance_to_max_pct}")
     else:
         print(f"Нет данных max_price, min_price для символа {symbol}")
     appset.conn_db.commit()
