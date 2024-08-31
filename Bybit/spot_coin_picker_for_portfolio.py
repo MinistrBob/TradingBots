@@ -36,6 +36,7 @@ def main():
             except Exception as e:
                 print("Ошибка при закрытии соединения:", e)
 
+
 def get_symbols_list():
     symbols = appset.bybit_api.get_instruments_info(category='spot')
     print(json.dumps(symbols, indent=4))
@@ -89,7 +90,6 @@ def batch_insert_klines_to_db(klines):
         appset.conn_db.commit()
     except sqlite3.Error as e:
         raise Exception(f"Error in batch_insert_klines_to_db: {e}") from e
-
 
 
 def insert_kline_to_db(kline):
@@ -161,7 +161,8 @@ def get_kline_history(symbol):
         # Устанавливаем новое начальное время для следующей итерации
         end_time = last_time - interval_ms
         print("===========================")
-    update_date_last_check(symbol, date_last_check)
+    update_date_last_check(appset, symbol, date_last_check)
+
 
 def get_tickers(symbol):
     """
@@ -190,6 +191,7 @@ def get_tickers(symbol):
     if cursor is not None:
         cursor.close()
 
+
 def symbol_data_processing(symbol):
     """
     Определяем в какой диапазон попала текущая цена. Первая треть вторая треть или третья треть.
@@ -215,31 +217,37 @@ def symbol_data_processing(symbol):
         middle_line = min_price + (max_price - min_price) / 2
 
         # Определяем в какой range попадет текущая цена
-        curr_range = None
+        level = None
         if min_price <= appset.last_price < first_line:
-            curr_range = 1
+            level = 1
         if first_line <= appset.last_price < middle_line:
-            curr_range = 2
+            level = 2
         if middle_line <= appset.last_price < second_line:
-            curr_range = 3
+            level = 3
         if appset.last_price >= second_line:
-            curr_range = 4
-
-        # TODO: Сколько времени существует монета.
-
+            level = 4
 
         # Получаем текущее время в unixtime
         date_last_check = int(datetime.now().timestamp())
 
+        # Сколько месяцев существует монета.
+        # Вычисляем разницу в секундах между двумя датами
+        time_difference_seconds = date_last_check - start_time
+        # Вычисляем разницу в месяцах
+        months_diff = int(time_difference_seconds / appset.average_seconds_per_month)
+        print(f"Примерная разница в месяцах: {months_diff}")
+
         # Обновляем данные в таблице symbols
         cursor.execute('''
             UPDATE symbols
-            SET maxPrice = ?, minPrice = ?, firstLine = ?, secondLine = ?, middleLine = ?, dateLastCheck = ?, range = ?
+            SET maxPrice = ?, minPrice = ?, firstLine = ?, secondLine = ?, middleLine = ?, 
+            dateLastCheck = ?, level = ?, monthsDiff = ? 
             WHERE symbol = ?
-        ''', (max_price, min_price, first_line, second_line, middle_line, date_last_check, curr_range, symbol))
+        ''', (max_price, min_price, first_line, second_line, middle_line, date_last_check, level, months_diff,
+              symbol))
         print(f"Данные для {symbol} успешно обновлены max_price={max_price}, min_price={min_price}, "
               f"first_line={first_line}, second_line={second_line}, middle_line={middle_line}, "
-              f"date_last_check={date_last_check}, curr_range={curr_range}")
+              f"date_last_check={date_last_check}, level={level}, months_diff={months_diff}")
     else:
         print(f"Нет данных max_price, min_price для символа {symbol}")
     appset.conn_db.commit()
