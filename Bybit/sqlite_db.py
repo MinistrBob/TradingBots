@@ -30,7 +30,7 @@ def create_database():
         symbol TEXT PRIMARY KEY,
         dateLastCheck INTEGER,
         lastPrice FLOAT,
-        volumeUsdt INTEGER
+        volumeUsdt INTEGER,
         maxPrice FLOAT,
         minPrice FLOAT,
         firstLine FLOAT,

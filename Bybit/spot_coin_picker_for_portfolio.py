@@ -171,7 +171,7 @@ def get_tickers(symbol):
     """
     tickers = appset.bybit_api.get_tickers(category="spot", symbol=symbol)
     print(tickers)
-    last_price = tickers['result']['list'][0]['lastPrice']
+    last_price = float(tickers['result']['list'][0]['lastPrice'])
     volume_usdt = int(float(tickers['result']['list'][0]['turnover24h']))
     print(last_price, volume_usdt)
     cursor = None
@@ -218,6 +218,8 @@ def symbol_data_processing(symbol):
 
         # Определяем в какой range попадет текущая цена
         level = None
+        print(appset.last_price)
+        print(type(min_price), type(appset.last_price), type(first_line))
         if min_price <= appset.last_price < first_line:
             level = 1
         if first_line <= appset.last_price < middle_line:
@@ -228,17 +230,22 @@ def symbol_data_processing(symbol):
             level = 4
 
         # Получаем текущее время в unixtime
-        date_last_check = int(datetime.now().timestamp())
+        date_last_check = get_current_unixtime()
+        print(date_last_check)
 
         # Сколько месяцев существует монета.
         # Вычисляем разницу в секундах между двумя датами
-        time_difference_seconds = date_last_check - start_time
+        print(unixtime_to_datetime(date_last_check))
+        print(unixtime_to_datetime(start_time))
+        time_difference_milliseconds = date_last_check - start_time
+        print(time_difference_milliseconds)
         # Вычисляем разницу в месяцах
-        months_diff = int(time_difference_seconds / appset.average_seconds_per_month)
+        months_diff = int(time_difference_milliseconds / appset.average_milliseconds_per_month)
         print(f"Примерная разница в месяцах: {months_diff}")
 
         # Сколько процентов от текущей цены до максимума.
         price_distance_to_max_pct = int(((max_price - appset.last_price) / max_price) * 100)
+        print(price_distance_to_max_pct)
 
         # Обновляем данные в таблице symbols
         cursor.execute('''

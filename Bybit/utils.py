@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 
+
 def unixtime_to_datetime(ts):
     return datetime.utcfromtimestamp(ts / 1000).strftime('%d.%m.%Y %H:%M:%S:%f')[:-3] if ts is not None else 'Нет данных'
 
@@ -13,13 +14,14 @@ def datetime_to_unixtime(date_str):
     unix_time = int(dt.timestamp() * 1000)  # Приводим к миллисекундам для соответствия
     return unix_time
 
+
 def get_current_unixtime():
     return datetime_to_unixtime(datetime.utcnow().strftime('%d.%m.%Y 00:00:00'))
 
 
 if __name__ == '__main__':
     # unixtime to date
-    ts = 1724889600000
+    ts = 1725135919
     print(f"For timestamp {ts} date is {unixtime_to_datetime(ts)}")
 
     # date to unixtime
