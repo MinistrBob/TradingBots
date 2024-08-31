@@ -52,7 +52,7 @@ def get_symbols_list():
     return usdt_symbols_sorted
 
 
-def batch_insert_klines_to_db(klines):
+def batch_insert_klines_to_db(appset, symbol, klines):
     """
     Вставляет несколько свечей в базу данных в одной операции.
     Если запись с таким startTime уже существует, обновляет данные.
@@ -63,6 +63,7 @@ def batch_insert_klines_to_db(klines):
         data_to_insert = [
             (
                 int(kline[0]),  # startTime
+                symbol,
                 float(kline[1]),  # open
                 float(kline[2]),  # high
                 float(kline[3]),  # low
@@ -74,9 +75,10 @@ def batch_insert_klines_to_db(klines):
 
         # Выполняем batch-вставку с обработкой конфликта
         cursor.executemany('''
-        INSERT INTO kline_history ([startTime], [open], [high], [low], [close], [volume], [turnover])
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO kline_history ([startTime], [symbol], [open], [high], [low], [close], [volume], [turnover])
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT([startTime]) DO UPDATE SET
+            [symbol]=excluded.[symbol],
             [open]=excluded.[open],
             [high]=excluded.[high],
             [low]=excluded.[low],
@@ -89,17 +91,18 @@ def batch_insert_klines_to_db(klines):
         raise Exception(f"Error in batch_insert_klines_to_db: {e}") from e
 
 
-def insert_kline_to_db(kline):
+def insert_kline_to_db(appset, symbol, kline):
     """
     Вставляет одну свечу в базу данных.
     """
     cursor = appset.conn_db.cursor()
     try:
         cursor.execute('''
-        INSERT INTO kline_history (startTime, open, high, low, close, volume, turnover)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO kline_history ([startTime], [symbol], [open], [high], [low], [close], [volume], [turnover])
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             int(kline[0]),  # startTime
+            symbol,
             float(kline[1]),  # open
             float(kline[2]),  # high
             float(kline[3]),  # low
@@ -143,7 +146,7 @@ def get_kline_history(symbol):
             print("...")
             print(f"{unixtime_to_datetime(int(klines[-1][0]))}\n{klines[-1]}")
             # Вставляем свечи в базу данных одной batch-вставкой
-            batch_insert_klines_to_db(appset.conn_db, klines)
+            batch_insert_klines_to_db(appset, symbol, klines)
             # Вставляем каждую свечу в базу данных
             # for kline in klines:
             #     insert_kline_to_db(kline)
