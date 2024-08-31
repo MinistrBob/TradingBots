@@ -162,6 +162,10 @@ def get_kline_history(bybit_api, conn_db, symbol):
     update_date_last_check(conn_db, symbol, date_last_check)
 
 def get_tickers(bybit_api, conn_db, symbol):
+    """
+    Получаем данные для торговой паре: Текущую цену и Объем в USDT за последние 24 часа.
+    Вносим эти данные в таблицу symbols.
+    """
     tickers = bybit_api.get_tickers(category="spot", symbol=symbol)
     print(tickers)
     last_price = tickers['result']['list'][0]['lastPrice']
@@ -191,7 +195,7 @@ def symbol_data_processing(conn_db, symbol):
 
     # Получаем максимальную и минимальную цены для символа из таблицы kline_history
     cursor.execute('''
-    SELECT MAX(high), MIN(low) 
+    SELECT MAX(high), MIN(low)
     FROM kline_history 
     WHERE symbol = ?
     ''', (symbol,))
@@ -230,7 +234,7 @@ def symbol_data_processing(conn_db, symbol):
               f"first_line={first_line}, second_line={second_line}, middle_line={middle_line}, "
               f"date_last_check={date_last_check}")
     else:
-        print(f"Нет данных max_price, min_price, first_line, second_line, "
+        print(f"Нет данных max_price, min_price, lastPrice, second_line, "
               f"middle_line, date_last_check для символа {symbol}")
     conn_db.commit()
     cursor.close()
