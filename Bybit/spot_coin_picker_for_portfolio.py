@@ -16,14 +16,14 @@ def main():
             api_secret=appset.api_secret,
         )
         appset.conn_db = create_database()
-
+        get_recommendation(appset)
         # Цикл по всем монетам
-        symbols_list = get_symbols_list()
-        for symbol in symbols_list[0:2]:
-            print(f"\n\nОбработка пары: {symbol}")
-            get_kline_history(symbol)
-            get_tickers(symbol)
-            symbol_data_processing(symbol)
+        # symbols_list = get_symbols_list()
+        # for symbol in symbols_list:
+        #     print(f"\n\nОбработка пары: {symbol}")
+        #     get_kline_history(symbol)
+        #     get_tickers(symbol)
+        #     symbol_data_processing(symbol)
     except Exception:
         print(traceback.format_exc())
     finally:
@@ -71,7 +71,7 @@ def batch_insert_klines_to_db(appset, symbol, klines):
                 float(kline[3]),  # low
                 float(kline[4]),  # close
                 float(kline[5]),  # volume
-                float(kline[6])   # turnover
+                float(kline[6])  # turnover
             ) for kline in klines
         ]
 
@@ -93,7 +93,6 @@ def batch_insert_klines_to_db(appset, symbol, klines):
     finally:
         if cursor is not None:
             cursor.close()
-
 
 
 def insert_kline_to_db(appset, symbol, kline):
@@ -250,9 +249,9 @@ def symbol_data_processing(symbol):
         # Сколько процентов от текущей цены до максимума.
         # Логика: на 1$ я куплю по текущей цене монеты, по максимуму я продам и получу больше $.
         # Вычитаю 1$ из полученной прибыли и высчитываю сколько эта прибыль в процентах.
-        net_profit = (1/appset.last_price)*max_price-1
+        net_profit = (1 / appset.last_price) * max_price - 1
         print(f"net_profit={net_profit}")
-        price_distance_to_max_pct = int(net_profit*100)
+        price_distance_to_max_pct = int(net_profit * 100)
         print(f"{price_distance_to_max_pct}% от текущей цены до максимума")
 
         # Обновляем данные в таблице symbols
@@ -270,6 +269,26 @@ def symbol_data_processing(symbol):
               f"price_distance_to_max_pct={price_distance_to_max_pct}")
     else:
         print(f"Нет данных max_price, min_price для символа {symbol}")
+    if cursor is not None:
+        cursor.close()
+
+
+def get_recommendation(appset):
+    cursor = appset.conn_db.cursor()
+    # SQL-запрос
+    query = """
+    SELECT *
+    FROM symbols
+    WHERE monthsDiff > 8
+      AND priceDistanceToMaxPct > 200
+      AND (level = 1 OR level = 2)
+      AND volumeUsdt > 1000000
+    ORDER BY volumeUsdt DESC, priceDistanceToMaxPct DESC, level DESC;
+    """
+    cursor.execute(query)
+    results = cursor.fetchall()
+    for row in results:
+        print(row)
     if cursor is not None:
         cursor.close()
 
