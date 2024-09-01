@@ -17,12 +17,13 @@ def main():
         )
         appset.conn_db = create_database()
 
-        # TODO: Здесь нужно реализовать цикл по всем монетам.
-        # symbols_list = get_symbols_list()
-        symbol = 'BTCUSDT'
-        get_kline_history(symbol)
-        get_tickers(symbol)
-        symbol_data_processing(symbol)
+        # Цикл по всем монетам
+        symbols_list = get_symbols_list()
+        for symbol in symbols_list[0:1]:
+            print(f"\n\nОбработка пары: {symbol}")
+            get_kline_history(symbol)
+            get_tickers(symbol)
+            symbol_data_processing(symbol)
     except Exception:
         print(traceback.format_exc())
     finally:
@@ -36,19 +37,19 @@ def main():
 
 def get_symbols_list():
     symbols = appset.bybit_api.get_instruments_info(category='spot')
-    print(json.dumps(symbols, indent=4))
+    # print(json.dumps(symbols, indent=4))
     # file_path = r'c:\MyGit\TradingBots\Bybit\spot_symbols.json'
     # with open(file_path, 'r', encoding='utf-8') as f:
     #     symbols = json.load(f)
     # print(symbols)
-    print(len(symbols["result"]["list"]))
+    # print(len(symbols["result"]["list"]))
     # Extract all symbols where quoteCoin is USDT
     usdt_symbols = [item["symbol"] for item in symbols["result"]["list"] if item["quoteCoin"] == "USDT"]
     # Sort the list of symbols alphabetically
     usdt_symbols_sorted = sorted(usdt_symbols)
     # Print the filtered symbols
-    print(len(usdt_symbols_sorted), usdt_symbols_sorted)
-
+    # print(len(usdt_symbols_sorted), usdt_symbols_sorted)
+    print(f"Всего {len(usdt_symbols_sorted)} USDT пар")
     return usdt_symbols_sorted
 
 
@@ -57,8 +58,9 @@ def batch_insert_klines_to_db(appset, symbol, klines):
     Вставляет несколько свечей в базу данных в одной операции.
     Если запись с таким startTime уже существует, обновляет данные.
     """
-    cursor = appset.conn_db.cursor()
+    cursor = None
     try:
+        cursor = appset.conn_db.cursor()
         # Подготовка данных для batch-вставки
         data_to_insert = [
             (
@@ -89,14 +91,18 @@ def batch_insert_klines_to_db(appset, symbol, klines):
         appset.conn_db.commit()
     except sqlite3.Error as e:
         raise Exception(f"Error in batch_insert_klines_to_db: {e}") from e
+    finally:
+        if cursor is not None:
+            cursor.close()
 
 
 def insert_kline_to_db(appset, symbol, kline):
     """
     Вставляет одну свечу в базу данных.
     """
-    cursor = appset.conn_db.cursor()
+    cursor = None
     try:
+        cursor = appset.conn_db.cursor()
         cursor.execute('''
         INSERT INTO kline_history ([startTime], [symbol], [open], [high], [low], [close], [volume], [turnover])
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -114,6 +120,9 @@ def insert_kline_to_db(appset, symbol, kline):
     except sqlite3.IntegrityError:
         # Если запись с таким startTime уже существует, ничего не делаем
         print(f"Запись с startTime {kline[0]} уже существует в базе данных.")
+    finally:
+        if cursor is not None:
+            cursor.close()
 
 
 def get_kline_history(symbol):
@@ -180,15 +189,17 @@ def get_tickers(symbol):
         cursor = appset.conn_db.cursor()
         # Обновляем или вставляем данные в таблицу symbols
         cursor.execute('''
-            UPDATE symbols
-            SET lastPrice = ?, volumeUsdt = ?
-            WHERE symbol = ?
-        ''', (last_price, volume_usdt, symbol))
+            INSERT INTO symbols (symbol, lastPrice, volumeUsdt)
+            VALUES (?, ?, ?)
+            ON CONFLICT(symbol) DO UPDATE SET 
+                lastPrice = excluded.lastPrice,
+                volumeUsdt = excluded.volumeUsdt
+        ''', (symbol, last_price, volume_usdt))
         appset.last_price = last_price
+        appset.conn_db.commit()
         print(f"Данные для {symbol} успешно обновлены last_price={last_price}, volume_usdt={volume_usdt}")
     else:
         print(f"Нет данных last_price, volume_usdt для символа {symbol}")
-    appset.conn_db.commit()
     if cursor is not None:
         cursor.close()
 
@@ -237,7 +248,9 @@ def symbol_data_processing(symbol):
         print(f"Примерная разница в месяцах: {months_diff}")
 
         # Сколько процентов от текущей цены до максимума
-        price_distance_to_max_pct = int(((max_price - appset.last_price) / max_price) * 100)
+        # price_distance_to_max_pct = int(((max_price - appset.last_price) / max_price) * 100)
+        # print(f"{price_distance_to_max_pct}% от текущей цены до максимума")
+        price_distance_to_max_pct = int(((appset.last_price - max_price) / max_price) * 100)
         print(f"{price_distance_to_max_pct}% от текущей цены до максимума")
 
         # Обновляем данные в таблице symbols
@@ -248,14 +261,15 @@ def symbol_data_processing(symbol):
             WHERE symbol = ?
         ''', (max_price, min_price, first_line, second_line, middle_line, date_last_check, level, months_diff,
               price_distance_to_max_pct, symbol))
+        appset.conn_db.commit()
         print(f"Данные для {symbol} успешно обновлены max_price={max_price}, min_price={min_price}, "
               f"first_line={first_line}, second_line={second_line}, middle_line={middle_line}, "
               f"date_last_check={date_last_check}, level={level}, months_diff={months_diff}, "
               f"price_distance_to_max_pct={price_distance_to_max_pct}")
     else:
         print(f"Нет данных max_price, min_price для символа {symbol}")
-    appset.conn_db.commit()
-    cursor.close()
+    if cursor is not None:
+        cursor.close()
 
 
 if __name__ == '__main__':
