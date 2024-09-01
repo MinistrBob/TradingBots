@@ -19,7 +19,7 @@ def main():
 
         # Цикл по всем монетам
         symbols_list = get_symbols_list()
-        for symbol in symbols_list:
+        for symbol in symbols_list[0:2]:
             print(f"\n\nОбработка пары: {symbol}")
             get_kline_history(symbol)
             get_tickers(symbol)

@@ -36,5 +36,15 @@ df.set_index('startDateFormatted', inplace=True)
 # Переименовываем колонки для совместимости с mplfinance
 df.rename(columns={'open': 'Open', 'high': 'High', 'low': 'Low', 'close': 'Close', 'volume': 'Volume'}, inplace=True)
 
-# Создаем и отображаем свечной график с форматом даты DD.MM.YYYY
-mpf.plot(df, type='candle', volume=True, style='binance', title=f'Candlestick Chart for {symbol}', datetime_format='%d.%m.%Y')
+# Уровни цен для горизонтальных линий
+price_levels = [0.20, 1.34, 1.91, 2.48, 3.63]
+
+mpf.plot(df,
+         type='candle',
+         volume=True,
+         style='binance',
+         title=f'Candlestick Chart for {symbol}',
+         datetime_format='%d.%m.%Y',
+         hlines=dict(hlines=price_levels, colors=['blue', 'red', 'yellow', 'red', 'blue'], linewidths=1),
+         # savefig='candlestick_chart.png'
+         )
