@@ -17,7 +17,7 @@ SET SZIP=c:\Program Files\7-Zip\7z.exe
 
 mkdir "%BP%"
 rem "%WINRAR%" a -r -s -m5 -md1024 -ag_YYYYMMDD-NN "%BP%\%PNAME%.rar" "c:\MyGit\%PNAME%\*"
-"%SZIP%" a -t7z -r -mx9 -mtc=on -mta=on -mtr=on -xr@exclude.txt -xr!__pycache__ "%BP%\%date_name%_%PNAME%.7z" "%MYGIT_PATH%\%PNAME%\*"
+"%SZIP%" a -t7z -r -mx9 -mtc=on -mta=on -mtr=on -xr@exclude.txt -xr!*.db -xr!__pycache__ "%BP%\%date_name%_%PNAME%.7z" "%MYGIT_PATH%\%PNAME%\*"
 "%SZIP%" a -t7z -r -mx9 -mtc=on -mta=on -mtr=on -p%mypass% -ir@exclude.txt "%BP%\%date_name%_%PNAME%_PASS.7z" "%MYGIT_PATH%\%PNAME%\exclude.txt"
 rem Delete backups except last 6
 cd /d "%BP%"
