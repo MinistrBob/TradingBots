@@ -56,7 +56,7 @@ def get_symbols_list():
 def batch_insert_klines_to_db(appset, symbol, klines):
     """
     Вставляет несколько свечей в базу данных в одной операции.
-    Если запись с таким startTime уже существует, обновляет данные.
+    Если запись с таким startTime и symbol уже существует, обновляет данные.
     """
     cursor = None
     try:
@@ -71,16 +71,15 @@ def batch_insert_klines_to_db(appset, symbol, klines):
                 float(kline[3]),  # low
                 float(kline[4]),  # close
                 float(kline[5]),  # volume
-                float(kline[6])  # turnover
+                float(kline[6])   # turnover
             ) for kline in klines
         ]
 
-        # Выполняем batch-вставку с обработкой конфликта
+        # Выполняем batch-вставку с обработкой конфликта для пары startTime и symbol
         cursor.executemany('''
         INSERT INTO kline_history ([startTime], [symbol], [open], [high], [low], [close], [volume], [turnover])
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT([startTime]) DO UPDATE SET
-            [symbol]=excluded.[symbol],
+        ON CONFLICT([startTime], [symbol]) DO UPDATE SET
             [open]=excluded.[open],
             [high]=excluded.[high],
             [low]=excluded.[low],
@@ -94,6 +93,7 @@ def batch_insert_klines_to_db(appset, symbol, klines):
     finally:
         if cursor is not None:
             cursor.close()
+
 
 
 def insert_kline_to_db(appset, symbol, kline):
