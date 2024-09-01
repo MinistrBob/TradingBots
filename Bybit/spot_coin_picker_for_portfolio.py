@@ -19,7 +19,7 @@ def main():
 
         # Цикл по всем монетам
         symbols_list = get_symbols_list()
-        for symbol in symbols_list[0:1]:
+        for symbol in symbols_list:
             print(f"\n\nОбработка пары: {symbol}")
             get_kline_history(symbol)
             get_tickers(symbol)
@@ -247,10 +247,12 @@ def symbol_data_processing(symbol):
         months_diff = int(time_difference_milliseconds / appset.average_milliseconds_per_month)
         print(f"Примерная разница в месяцах: {months_diff}")
 
-        # Сколько процентов от текущей цены до максимума
-        # price_distance_to_max_pct = int(((max_price - appset.last_price) / max_price) * 100)
-        # print(f"{price_distance_to_max_pct}% от текущей цены до максимума")
-        price_distance_to_max_pct = int(((appset.last_price - max_price) / max_price) * 100)
+        # Сколько процентов от текущей цены до максимума.
+        # Логика: на 1$ я куплю по текущей цене монеты, по максимуму я продам и получу больше $.
+        # Вычитаю 1$ из полученной прибыли и высчитываю сколько эта прибыль в процентах.
+        net_profit = (1/appset.last_price)*max_price-1
+        print(f"net_profit={net_profit}")
+        price_distance_to_max_pct = int(net_profit*100)
         print(f"{price_distance_to_max_pct}% от текущей цены до максимума")
 
         # Обновляем данные в таблице symbols
