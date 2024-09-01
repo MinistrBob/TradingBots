@@ -45,7 +45,7 @@ def create_database():
     # Создание таблицы kline_history с внешним ключом, ссылающимся на symbols
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS kline_history (
-        startTime INTEGER PRIMARY KEY,
+        startTime INTEGER,
         symbol TEXT,
         open FLOAT,
         high FLOAT,
@@ -53,10 +53,10 @@ def create_database():
         close FLOAT,
         volume FLOAT,
         turnover FLOAT,
-        FOREIGN KEY (symbol) REFERENCES symbols(symbol)
-    )
+        FOREIGN KEY (symbol) REFERENCES symbols(symbol),
+        PRIMARY KEY (startTime, symbol)  -- Уникальность на комбинацию startTime и symbol
+    );
     ''')
-
     conn.commit()
     return conn
 
