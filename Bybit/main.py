@@ -3,6 +3,7 @@ import traceback
 from pybit.unified_trading import HTTP
 from SETTINGS import app_settings as appset
 from sqlite_db import create_database, update_date_last_check
+from spot_load_data_to_db import load_data_to_db
 
 
 def main():
@@ -10,7 +11,7 @@ def main():
     parser = argparse.ArgumentParser(description="Программа для выбора торговых пар на spot Bybit")
 
     # Добавляем возможные аргументы
-    parser.add_argument('--get-data', '-gd', action='store_true', help='Загрузить данные с биржи в базу данных')
+    parser.add_argument('--load-data', '-ld', action='store_true', help='Загрузить данные с биржи в базу данных')
     parser.add_argument('--get-recommendation', '-gr', action='store_true', help='Получить список рекомендованных пар')
     parser.add_argument('--get-graph', '-gg', type=str, help='Получить график по выбранной паре')
 
@@ -27,10 +28,10 @@ def main():
         appset.conn_db = create_database()
 
         # Проверяем, какой аргумент был передан
-        if args.get_data:
-            get_data()
+        if args.load_data:
+            load_data_to_db()
         elif args.get_recommendation:
-            get_recommendation(appset)
+            get_recommendation()
         elif args.get_graph:
             get_graph(args.get_graph)
         else:

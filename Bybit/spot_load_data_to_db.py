@@ -8,31 +8,19 @@ from utils import unixtime_to_datetime, get_current_unixtime
 from datetime import datetime, timezone
 
 
-def main():
-    try:
-        appset.bybit_api = HTTP(
-            testnet=False,
-            api_key=appset.api_key,
-            api_secret=appset.api_secret,
-        )
-        appset.conn_db = create_database()
-
-        # Цикл по всем монетам
-        symbols_list = get_symbols_list()
-        for symbol in symbols_list:
-            print(f"\n\nОбработка пары: {symbol}")
-            get_kline_history(symbol)
-            get_tickers(symbol)
-            symbol_data_processing(symbol)
-    except Exception:
-        print(traceback.format_exc())
-    finally:
-        # Гарантированное закрытие соединения
-        if appset.conn_db is not None:
-            try:
-                appset.conn_db.close()
-            except Exception as e:
-                print("Ошибка при закрытии соединения:", e)
+def load_data_to_db():
+    """
+    Получает список торговых пар с биржи и по каждой паре загружает историю свечей 1D в БД, получает текущие параметры
+    для пары, вычисляет различные параметры по полученным данным.
+    :return:
+    """
+    # Цикл по всем монетам
+    symbols_list = get_symbols_list()
+    for symbol in symbols_list:
+        print(f"\n\nОбработка пары: {symbol}")
+        get_kline_history(symbol)
+        get_tickers(symbol)
+        symbol_data_processing(symbol)
 
 
 def get_symbols_list():
@@ -95,7 +83,7 @@ def batch_insert_klines_to_db(appset, symbol, klines):
             cursor.close()
 
 
-def insert_kline_to_db(appset, symbol, kline):
+def insert_kline_to_db(symbol, kline):
     """
     Вставляет одну свечу в базу данных.
     """
@@ -154,7 +142,7 @@ def get_kline_history(symbol):
             print("...")
             print(f"{unixtime_to_datetime(int(klines[-1][0]))}\n{klines[-1]}")
             # Вставляем свечи в базу данных одной batch-вставкой
-            batch_insert_klines_to_db(appset, symbol, klines)
+            batch_insert_klines_to_db(symbol, klines)
             # Вставляем каждую свечу в базу данных
             # for kline in klines:
             #     insert_kline_to_db(kline)
@@ -271,6 +259,27 @@ def symbol_data_processing(symbol):
         print(f"Нет данных max_price, min_price для символа {symbol}")
     if cursor is not None:
         cursor.close()
+
+
+def main():
+    try:
+        appset.bybit_api = HTTP(
+            testnet=False,
+            api_key=appset.api_key,
+            api_secret=appset.api_secret,
+        )
+        appset.conn_db = create_database()
+        load_data_to_db()
+    except Exception:
+        print(traceback.format_exc())
+    finally:
+        # Гарантированное закрытие соединения
+        if appset.conn_db is not None:
+            try:
+                appset.conn_db.close()
+            except Exception as e:
+                print("Ошибка при закрытии соединения:", e)
+
 
 if __name__ == '__main__':
     main()

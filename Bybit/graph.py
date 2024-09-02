@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pybit.unified_trading import HTTP
 
 
-def plot_graph(appset, row, save_to_file=False):
+def plot_graph(row, save_to_file=False):
     # Выполняем запрос и загружаем данные в DataFrame
     query = f"""
     SELECT 
