@@ -56,7 +56,7 @@ def get_symbols_list():
 def batch_insert_klines_to_db(appset, symbol, klines):
     """
     Вставляет несколько свечей в базу данных в одной операции.
-    Если запись с таким startTime уже существует, обновляет данные.
+    Если запись с таким startTime и symbol уже существует, обновляет данные.
     """
     cursor = None
     try:
@@ -75,12 +75,11 @@ def batch_insert_klines_to_db(appset, symbol, klines):
             ) for kline in klines
         ]
 
-        # Выполняем batch-вставку с обработкой конфликта
+        # Выполняем batch-вставку с обработкой конфликта для пары startTime и symbol
         cursor.executemany('''
         INSERT INTO kline_history ([startTime], [symbol], [open], [high], [low], [close], [volume], [turnover])
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ON CONFLICT([startTime]) DO UPDATE SET
-            [symbol]=excluded.[symbol],
+        ON CONFLICT([startTime], [symbol]) DO UPDATE SET
             [open]=excluded.[open],
             [high]=excluded.[high],
             [low]=excluded.[low],
@@ -250,9 +249,9 @@ def symbol_data_processing(symbol):
         # Сколько процентов от текущей цены до максимума.
         # Логика: на 1$ я куплю по текущей цене монеты, по максимуму я продам и получу больше $.
         # Вычитаю 1$ из полученной прибыли и высчитываю сколько эта прибыль в процентах.
-        net_profit = (1/appset.last_price)*max_price-1
+        net_profit = (1 / appset.last_price) * max_price - 1
         print(f"net_profit={net_profit}")
-        price_distance_to_max_pct = int(net_profit*100)
+        price_distance_to_max_pct = int(net_profit * 100)
         print(f"{price_distance_to_max_pct}% от текущей цены до максимума")
 
         # Обновляем данные в таблице symbols
@@ -272,7 +271,6 @@ def symbol_data_processing(symbol):
         print(f"Нет данных max_price, min_price для символа {symbol}")
     if cursor is not None:
         cursor.close()
-
 
 if __name__ == '__main__':
     main()
