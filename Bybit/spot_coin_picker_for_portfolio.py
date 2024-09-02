@@ -16,14 +16,14 @@ def main():
             api_secret=appset.api_secret,
         )
         appset.conn_db = create_database()
-        get_recommendation(appset)
+
         # Цикл по всем монетам
-        # symbols_list = get_symbols_list()
-        # for symbol in symbols_list:
-        #     print(f"\n\nОбработка пары: {symbol}")
-        #     get_kline_history(symbol)
-        #     get_tickers(symbol)
-        #     symbol_data_processing(symbol)
+        symbols_list = get_symbols_list()
+        for symbol in symbols_list:
+            print(f"\n\nОбработка пары: {symbol}")
+            get_kline_history(symbol)
+            get_tickers(symbol)
+            symbol_data_processing(symbol)
     except Exception:
         print(traceback.format_exc())
     finally:
@@ -271,27 +271,6 @@ def symbol_data_processing(symbol):
         print(f"Нет данных max_price, min_price для символа {symbol}")
     if cursor is not None:
         cursor.close()
-
-
-def get_recommendation(appset):
-    cursor = appset.conn_db.cursor()
-    # SQL-запрос
-    query = """
-    SELECT *
-    FROM symbols
-    WHERE monthsDiff > 8
-      AND priceDistanceToMaxPct > 200
-      AND (level = 1 OR level = 2)
-      AND volumeUsdt > 1000000
-    ORDER BY volumeUsdt DESC, priceDistanceToMaxPct DESC, level DESC;
-    """
-    cursor.execute(query)
-    results = cursor.fetchall()
-    for row in results:
-        print(row)
-    if cursor is not None:
-        cursor.close()
-
 
 if __name__ == '__main__':
     main()
