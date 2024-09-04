@@ -4,6 +4,8 @@ from pybit.unified_trading import HTTP
 from SETTINGS import app_settings as appset
 from sqlite_db import create_database, update_date_last_check
 from spot_load_data_to_db import load_data_to_db
+from spot_recomendation import get_recommendation
+from graph import plot_graph
 
 
 def main():
