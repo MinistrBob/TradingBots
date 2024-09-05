@@ -3,13 +3,14 @@ import os
 import pandas as pd
 import mplfinance as mpf
 from datetime import datetime
+import matplotlib.pyplot as plt
 
 from matplotlib.lines import lineStyles
 
 from SETTINGS import app_settings as appset
 import traceback
 from sqlite_db import create_database, update_date_last_check
-from utils import unixtime_to_datetime, get_current_unixtime
+from utils import unixtime_to_datetime, get_current_unixtime, unixtime_to_date
 from datetime import datetime, timezone
 from pybit.unified_trading import HTTP
 
@@ -43,10 +44,11 @@ def plot_graph(row, save_to_file=False):
     # ('SANDUSDT', 1725235200000, 0.23768, 1118543, 8.48992, 0.20807, 2.968686666666667, 5.729303333333334, 4.348995, 1, 34, 3471)
     price_levels = [row[5], row[6], row[7], row[8], row[4]]
 
-    current_datetime = datetime.now().strftime("%Y%m%d%H%M%S")
+    # current_datetime = datetime.now().strftime("%Y%m%d%H%M%S")
+    file_name = f'{row[0]}-{unixtime_to_date(row[1])}.png'
 
     if save_to_file:
-        full_path = os.path.join(appset.path_for_graphs, f'{row[11]}-{row[0]}-{current_datetime}.png')
+        full_path = os.path.join(appset.path_for_graphs, file_name)
         mpf.plot(df,
                  type='candle',
                  volume=True,
@@ -67,7 +69,8 @@ def plot_graph(row, save_to_file=False):
                  hlines=dict(hlines=price_levels, colors=['blue', 'red', 'red', 'red', 'blue'], linestyle='--',
                              linewidths=1),
                  )
-
+    # Отображаем все графики сразу
+    plt.show(block=False)
 
 def main():
     try:

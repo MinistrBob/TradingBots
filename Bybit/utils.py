@@ -4,6 +4,8 @@ from datetime import datetime, timezone
 def unixtime_to_datetime(ts):
     return datetime.utcfromtimestamp(ts / 1000).strftime('%d.%m.%Y %H:%M:%S:%f')[:-3] if ts is not None else 'Нет данных'
 
+def unixtime_to_date(ts):
+    return datetime.utcfromtimestamp(ts / 1000).strftime('%d.%m.%Y') if ts is not None else 'Нет данных'
 
 def datetime_to_unixtime(date_str):
     # Определяем формат строки с датой
