@@ -41,7 +41,7 @@ def get_symbols_list():
     return usdt_symbols_sorted
 
 
-def batch_insert_klines_to_db(appset, symbol, klines):
+def batch_insert_klines_to_db(symbol, klines):
     """
     Вставляет несколько свечей в базу данных в одной операции.
     Если запись с таким startTime и symbol уже существует, обновляет данные.
@@ -158,7 +158,7 @@ def get_kline_history(symbol):
         # Устанавливаем новое начальное время для следующей итерации
         end_time = last_time - interval_ms
         print("===========================")
-    update_date_last_check(appset, symbol, date_last_check)
+    update_date_last_check(symbol, date_last_check)
 
 
 def get_tickers(symbol):

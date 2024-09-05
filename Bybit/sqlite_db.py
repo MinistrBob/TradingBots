@@ -97,6 +97,25 @@ def select_recommendations_symbols():
     return results
 
 
+def select_symbol(symbol):
+    """
+    Получить список рекомендованных пар отобранных по определённым условиям.
+    ('SANDUSDT', 1725235200000, 0.23768, 1118543, 8.48992, 0.20807, 2.968686666666667, 5.729303333333334, 4.348995, 1, 34, 3471)
+    """
+    cursor = appset.conn_db.cursor()
+    # SQL-запрос
+    query = f"""
+    SELECT *
+    FROM symbols
+    WHERE symbol = '{symbol}';
+    """
+    cursor.execute(query)
+    results = cursor.fetchone()
+    if cursor is not None:
+        cursor.close()
+    return results
+
+
 def main():
     try:
         appset.bybit_api = HTTP(
