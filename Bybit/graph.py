@@ -3,7 +3,6 @@ import os
 import pandas as pd
 import mplfinance as mpf
 from datetime import datetime
-import matplotlib.pyplot as plt
 
 from matplotlib.lines import lineStyles
 
@@ -69,8 +68,6 @@ def plot_graph(row, save_to_file=False):
                  hlines=dict(hlines=price_levels, colors=['blue', 'red', 'red', 'red', 'blue'], linestyle='--',
                              linewidths=1),
                  )
-    # Отображаем все графики сразу
-    plt.show(block=False)
 
 def main():
     try:
