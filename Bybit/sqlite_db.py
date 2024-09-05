@@ -1,6 +1,8 @@
 import sqlite3
 from utils import unixtime_to_datetime
 from SETTINGS import app_settings as appset
+import traceback
+from pybit.unified_trading import HTTP
 
 
 def create_database():

@@ -32,14 +32,14 @@ def main():
         if args.load_data:
             load_data_to_db()
         elif args.get_recommendation:
-            get_recommendation(save_to_file=False)
+            get_recommendation(save_to_file=args.save_file)
         elif args.get_graph:
             print(args.get_graph)
             print(args.save_file)
             get_graph(args.get_graph, save_to_file=args.save_file)
         else:
             load_data_to_db()
-            get_recommendation(save_to_file=False)
+            get_recommendation(save_to_file=args.save_file)
     except Exception:
         print(traceback.format_exc())
     finally:
