@@ -23,7 +23,10 @@ def get_recommendation(save_to_file=False):
 def get_graph(symbol, save_to_file=False):
     row = select_symbol(symbol)
     print(row)
-    plot_graph(row, save_to_file=save_to_file)
+    if row:
+        plot_graph(row, save_to_file=save_to_file)
+    else:
+        print(f"Символ {symbol} не найден")
 
 
 def main():
