@@ -295,3 +295,4 @@ Bybit/spot_coin_picker_for_portfolio.db
 test*.py
 *.png
 profiles.py
+Bybit/profiles.py

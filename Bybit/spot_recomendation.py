@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from graph import plot_graph
 
 
-def get_recommendation(save_to_file=False):
+def get_recommendation(only_list=False, save_to_file=False):
     """
     Получить список рекомендованных пар отобранных по определённым условиям.
     ('SANDUSDT', 1725235200000, 0.23768, 1118543, 8.48992, 0.20807, 2.968686666666667, 5.729303333333334, 4.348995, 1, 34, 3471)
@@ -17,7 +17,8 @@ def get_recommendation(save_to_file=False):
     results = select_recommendations_symbols()
     for row in results:
         print(row)
-        plot_graph(row, save_to_file=save_to_file)
+        if not only_list:
+            plot_graph(row, save_to_file=save_to_file)
 
 
 def get_graph(symbol, save_to_file=False):

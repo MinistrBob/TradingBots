@@ -14,6 +14,8 @@ def main():
     # Добавляем возможные аргументы
     parser.add_argument('--load-data', '-ld', action='store_true', help='Загрузить данные с биржи в базу данных')
     parser.add_argument('--get-recommendation', '-gr', action='store_true', help='Получить список рекомендованных пар')
+    parser.add_argument('--only-list', '-ol', action='store_true', help='Только список рекомендованных пар (без '
+                                                                        'графиков)')
     parser.add_argument('--get-graph', '-gg', type=str, help='Получить график по выбранной паре')
     parser.add_argument('--save-file', '-sf', action='store_true', help='Сохранить график в файл')
 
@@ -32,14 +34,14 @@ def main():
         if args.load_data:
             load_data_to_db()
         elif args.get_recommendation:
-            get_recommendation(save_to_file=args.save_file)
+            get_recommendation(only_list=args.only_list, save_to_file=args.save_file)
         elif args.get_graph:
             print(args.get_graph)
             print(args.save_file)
             get_graph(args.get_graph, save_to_file=args.save_file)
         else:
             load_data_to_db()
-            get_recommendation(save_to_file=args.save_file)
+            get_recommendation(only_list=args.only_list, save_to_file=args.save_file)
     except Exception:
         print(traceback.format_exc())
     finally:
