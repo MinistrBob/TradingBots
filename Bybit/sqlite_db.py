@@ -1,6 +1,6 @@
 import sqlite3
 from utils import unixtime_to_datetime
-from SETTINGS import app_settings as appset
+from settings import app_settings as appset
 
 
 def create_database():

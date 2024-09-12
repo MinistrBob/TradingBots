@@ -2,7 +2,7 @@ from pybit.unified_trading import HTTP
 import json
 import sqlite3
 import traceback
-from SETTINGS import app_settings as appset
+from settings import app_settings as appset
 from sqlite_db import create_database, update_date_last_check, select_recommendations_symbols, select_symbol
 from utils import unixtime_to_datetime, get_current_unixtime
 from datetime import datetime, timezone

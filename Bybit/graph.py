@@ -6,7 +6,7 @@ from datetime import datetime
 
 from matplotlib.lines import lineStyles
 
-from SETTINGS import app_settings as appset
+from settings import app_settings as appset
 import traceback
 from sqlite_db import create_database, update_date_last_check
 from utils import unixtime_to_datetime, get_current_unixtime
