@@ -19,7 +19,25 @@ def get_orders_list(cursor=None, orders=None):
         raise Exception(f"Error: {raw_orders['retCode']} {raw_orders['retMsg']}")
     return orders
 
+def compare_orders(current_orders, orders):
+    new_orders = []
+    modified_orders = []
+    missing_orders = []
 
+    current_orders_dict = {order['orderId']: order for order in current_orders}
+    orders_dict = {order['orderId']: order for order in orders}
+
+    for orderId, order in orders_dict.items():
+        if orderId not in current_orders_dict:
+            new_orders.append(order['orderId'])
+        elif order['updatedTime'] > current_orders_dict[orderId]['updatedTime']:
+            modified_orders.append(order['orderId'])
+
+    for orderId, order in current_orders_dict.items():
+        if orderId not in orders_dict:
+            missing_orders.append(order['orderId'])
+
+    return new_orders, modified_orders, missing_orders
 
 def main():
     try:
