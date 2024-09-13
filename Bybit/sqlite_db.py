@@ -1,5 +1,5 @@
 import sqlite3
-from utils import unixtime_to_datetime
+from utils import unixtime_to_datetime, send_telegram_msg_post
 from settings import app_settings as appset
 import traceback
 from pybit.unified_trading import HTTP
@@ -157,6 +157,76 @@ def select_symbol(symbol):
     if cursor is not None:
         cursor.close()
     return results
+
+
+def orders_select_for_compare():
+    """
+    Получить список ордеров для сравнения
+    """
+    cursor = appset.conn_db.cursor()
+    # SQL-запрос
+    query = f"""
+    SELECT orderId, updatedTime
+    FROM orders;
+    """
+    cursor.execute(query)
+    results = cursor.fetchall()
+    if cursor is not None:
+        cursor.close()
+    return results
+
+
+def orders_insert(orders):
+    """
+    Вставить список ордеров в базу данных.
+    :param orders: Список ордеров.
+    """
+    cursor = appset.conn_db.cursor()
+    for order in orders:
+        cursor.execute(
+            "INSERT INTO orders VALUES (:symbol, :orderType, :orderLinkId, :orderId, :avgPrice, :cancelType, "
+            ":stopOrderType, :lastPriceOnCreated, :orderStatus, :takeProfit, :cumExecValue, :smpType, "
+            ":triggerDirection, :blockTradeId, :isLeverage, :rejectReason, :price, :orderIv, :createdTime, "
+            ":tpTriggerBy, :positionIdx, :timeInForce, :leavesValue, :updatedTime, :side, :smpGroup, :triggerPrice, "
+            ":cumExecFee, :leavesQty, :slTriggerBy, :closeOnTrigger, :cumExecQty, :reduceOnly, :qty, :stopLoss, "
+            ":smpOrderId, :triggerBy)",
+            order)
+        appset.conn_db.commit()
+        text = f"✅Добавлен новый ордер {order['orderId']}:\nsymbol - {order['symbol']}\nprice - {order['price']}"
+        send_telegram_msg_post(text)
+
+
+def orders_update(orders):
+    """
+    Обновить данные в таблице orders на основе списка ордеров.
+    :param orders: Список ордеров.
+    """
+    cursor = appset.conn_db.cursor()
+    for order in orders:
+        cursor.execute(
+            "INSERT INTO orders VALUES (:symbol, :orderType, :orderLinkId, :orderId, :avgPrice, :cancelType, "
+            ":stopOrderType, :lastPriceOnCreated, :orderStatus, :takeProfit, :cumExecValue, :smpType, "
+            ":triggerDirection, :blockTradeId, :isLeverage, :rejectReason, :price, :orderIv, :createdTime, "
+            ":tpTriggerBy, :positionIdx, :timeInForce, :leavesValue, :updatedTime, :side, :smpGroup, :triggerPrice, "
+            ":cumExecFee, :leavesQty, :slTriggerBy, :closeOnTrigger, :cumExecQty, :reduceOnly, :qty, :stopLoss, "
+            ":smpOrderId, :triggerBy)",
+            order)
+        appset.conn_db.commit()
+        text = f"♻️Обновлён ордер {order['orderId']}:\nsymbol - {order['symbol']}\nprice - {order['price']}"
+        send_telegram_msg_post(text)
+
+
+def orders_delete(order):
+    """
+    Удалить ордеры из базы данных.
+    :param order: Список ордеров.
+    """
+    cursor = appset.conn_db.cursor()
+    for order in orders:
+        cursor.execute("DELETE FROM orders WHERE orderId=?", (order['orderId'],))
+        appset.conn_db.commit()
+        text = f"❌Удалён ордер {order['orderId']}:\nsymbol - {order['symbol']}\nprice - {order['price']}"
+        send_telegram_msg_post(text)
 
 
 def main():

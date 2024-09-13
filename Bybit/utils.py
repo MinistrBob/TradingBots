@@ -1,11 +1,15 @@
 from datetime import datetime, timezone
+from settings import app_settings as appset
 
 
 def unixtime_to_datetime(ts):
-    return datetime.utcfromtimestamp(ts / 1000).strftime('%d.%m.%Y %H:%M:%S:%f')[:-3] if ts is not None else 'Нет данных'
+    return datetime.utcfromtimestamp(ts / 1000).strftime('%d.%m.%Y %H:%M:%S:%f')[
+           :-3] if ts is not None else 'Нет данных'
+
 
 def unixtime_to_date(ts):
     return datetime.utcfromtimestamp(ts / 1000).strftime('%d.%m.%Y') if ts is not None else 'Нет данных'
+
 
 def datetime_to_unixtime(date_str):
     # Определяем формат строки с датой
@@ -20,6 +24,7 @@ def datetime_to_unixtime(date_str):
 def get_current_unixtime():
     return datetime_to_unixtime(datetime.utcnow().strftime('%d.%m.%Y 00:00:00'))
 
+
 def subtract_one_list_from_another():
     list1 = ['1INCH', '5IRE', 'AAVE', 'ADA', 'APE', 'APT', 'ARB', 'ARKM', 'ATOM', 'AVAX', 'BLUR', 'CORE', 'CRV', 'DOGE',
              'DOT', 'DYDX', 'ENS', 'EOS', 'FET', 'FIL', 'FMB', 'FTM', 'GALA', 'GMT', 'HBAR', 'HNT', 'ICP', 'IMX', 'INJ',
@@ -32,6 +37,28 @@ def subtract_one_list_from_another():
     result = list(set(list2) - set(list1))
     print(result)
 
+
+def send_telegram_msg_get(text):
+    """
+    (GET запрос) Сообщение в Telegram.
+    :param text:
+    :return:
+    """
+    url_req = f"https://api.telegram.org/bot{settings.token}/sendMessage?chat_id={settings.chat_id}&disable_web_page_preview=1&text={text}"
+    results = requests.get(url_req)
+    # print(results.json())
+    return results.json()
+
+
+def send_telegram_msg_post(text):
+    url = f"https://api.telegram.org/bot{appset.telegram_token}/sendMessage"
+    data = {
+        "chat_id": f"{appset.telegram_chat_id}",
+        "disable_web_page_preview": 1,
+        "text": text
+    }
+    response = requests.post(url, data=data, timeout=10)
+    response.raise_for_status()
 
 
 if __name__ == '__main__':
