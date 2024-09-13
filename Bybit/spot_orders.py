@@ -1,3 +1,4 @@
+import time
 from pybit.unified_trading import HTTP
 import traceback
 from settings import app_settings as appset
@@ -56,40 +57,42 @@ def compare_orders(exchange_orders, db_orders):
 
 
 def main():
-    try:
-        appset.bybit_api = HTTP(
-            testnet=False,
-            api_key=appset.api_key,
-            api_secret=appset.api_secret,
-        )
-        appset.conn_db = create_database()
-        exchange_orders = get_orders_list_exchange()
-        print(f"Total number of orders: {len(exchange_orders)}")
-        db_orders = orders_select_for_compare()
-        # db_orders=[('1774154455470868736', 1726231692192), ('1774154365662431488', 1726231681486), ...]
-        new_orders, modified_orders, deleted_orders = compare_orders(exchange_orders, db_orders)
-        orders_insert(new_orders)
-        print(f"Total number of new orders: {len(new_orders)}")
-        orders_update(modified_orders)
-        print(f"Total number of modified orders: {len(modified_orders)}")
-        orders_delete(deleted_orders)
-        print(f"Total number of deleted orders: {len(deleted_orders)}")
-    except Exception:
-        print(traceback.format_exc())
+    while True:
         try:
-            text = f"spot_orders Error: {traceback.format_exc()}"
-            send_telegram_msg_post(text)
+            appset.bybit_api = HTTP(
+                testnet=False,
+                api_key=appset.api_key,
+                api_secret=appset.api_secret,
+            )
+            appset.conn_db = create_database()
+            exchange_orders = get_orders_list_exchange()
+            print(f"Total number of orders: {len(exchange_orders)}")
+            db_orders = orders_select_for_compare()
+            # db_orders=[('1774154455470868736', 1726231692192), ('1774154365662431488', 1726231681486), ...]
+            new_orders, modified_orders, deleted_orders = compare_orders(exchange_orders, db_orders)
+            orders_insert(new_orders)
+            print(f"Total number of new orders: {len(new_orders)}")
+            orders_update(modified_orders)
+            print(f"Total number of modified orders: {len(modified_orders)}")
+            orders_delete(deleted_orders)
+            print(f"Total number of deleted orders: {len(deleted_orders)}")
         except Exception:
             print(traceback.format_exc())
-            text = f"spot_orders Не могу отправить ошибку в телеграм"
-            send_telegram_msg_post(text)
-    finally:
-        # Гарантированное закрытие соединения
-        if appset.conn_db is not None:
             try:
-                appset.conn_db.close()
-            except Exception as e:
-                print("Ошибка при закрытии соединения:", e)
+                text = f"spot_orders Error: {traceback.format_exc()}"
+                send_telegram_msg_post(text)
+            except Exception:
+                print(traceback.format_exc())
+                text = f"spot_orders Не могу отправить ошибку в телеграм"
+                send_telegram_msg_post(text)
+        finally:
+            # Гарантированное закрытие соединения
+            if appset.conn_db is not None:
+                try:
+                    appset.conn_db.close()
+                except Exception as e:
+                    print("Ошибка при закрытии соединения:", e)
+        time.sleep(60)
 
 
 if __name__ == '__main__':
