@@ -44,7 +44,6 @@ def create_database():
         priceDistanceToMaxPct INTEGER
     )
     ''')
-
     # Создание таблицы kline_history с внешним ключом, ссылающимся на symbols
     cursor.execute('''
     CREATE TABLE IF NOT EXISTS kline_history (
@@ -58,6 +57,48 @@ def create_database():
         turnover FLOAT,
         FOREIGN KEY (symbol) REFERENCES symbols(symbol),
         PRIMARY KEY (startTime, symbol)  -- Уникальность на комбинацию startTime и symbol
+    );
+    ''')
+    # Создание таблицы kline_history с внешним ключом, ссылающимся на symbols
+    cursor.execute('''
+    CREATE TABLE IF NOT EXISTS orders (
+        symbol TEXT,
+        orderType TEXT,
+        orderLinkId TEXT,
+        orderId TEXT,
+        avgPrice FLOAT,
+        cancelType TEXT,
+        stopOrderType TEXT,
+        lastPriceOnCreated TEXT,
+        orderStatus TEXT,
+        takeProfit TEXT,
+        cumExecValue TEXT,
+        smpType TEXT,
+        triggerDirection INTEGER,
+        blockTradeId TEXT,
+        isLeverage TEXT,
+        rejectReason TEXT,
+        price FLOAT,
+        orderIv TEXT,
+        createdTime INTEGER,
+        tpTriggerBy TEXT,
+        positionIdx INTEGER,
+        timeInForce TEXT,
+        leavesValue TEXT,
+        updatedTime INTEGER,
+        side TEXT,
+        smpGroup INTEGER,
+        triggerPrice TEXT,
+        cumExecFee TEXT,
+        leavesQty TEXT,
+        slTriggerBy TEXT,
+        closeOnTrigger BOOLEAN,
+        cumExecQty TEXT,
+        reduceOnly BOOLEAN,
+        qty FLOAT,
+        stopLoss TEXT,
+        smpOrderId TEXT,
+        triggerBy TEXT
     );
     ''')
     conn.commit()
