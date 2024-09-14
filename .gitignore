@@ -291,8 +291,8 @@ $RECYCLE.BIN/
 
 # MY FILES
 Cryptorg/settings.py
-Bybit/spot_coin_picker_for_portfolio.db
+spot_bybit/spot_coin_picker_for_portfolio.db
 test*.py
 *.png
 profiles.py
-Bybit/profiles.py
+spot_bybit/profiles.py

@@ -26,7 +26,7 @@ def load_data_to_db():
 def get_symbols_list():
     symbols = appset.bybit_api.get_instruments_info(category='spot')
     # print(json.dumps(symbols, indent=4))
-    # file_path = r'c:\MyGit\TradingBots\Bybit\spot_symbols.json'
+    # file_path = r'c:\MyGit\TradingBots\spot_bybit\spot_symbols.json'
     # with open(file_path, 'r', encoding='utf-8') as f:
     #     symbols = json.load(f)
     # print(symbols)
